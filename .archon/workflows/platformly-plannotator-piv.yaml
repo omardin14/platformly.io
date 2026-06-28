@@ -1,0 +1,64 @@
+# platformly-plannotator-piv — plan-gated feature build.
+# Requires the Archon CLI + plannotator extension. Adapted from GitHubIssueTriager
+# (archon-plannotator-piv) for the Tauri/Rust stack; no database hooks.
+#
+# Flow: CLARIFY (human-in-the-loop) -> PLAN (Pi writes PLAN.md, HTTP review gate)
+#       -> VERIFY-PLAN -> IMPLEMENT (fresh context per task) -> FINAL-REVIEW.
+name: platformly-plannotator-piv
+description: Plan-gated build — the plan is reviewed via plannotator's HTTP approval before any code.
+
+nodes:
+  - id: clarify
+    type: claude
+    interactive: true
+    maxIterations: 6
+    prompt: |
+      Converge on intent for: {{input}}. Ask 2-3 targeted questions via Archon HITL.
+      Do light recon only (grep/Read of CLAUDE.md, TODO.md, relevant dirs) — no deep dive.
+      Output: a 3-5 line understanding + the open questions. Loop until the user approves scope.
+
+  - id: plan
+    type: pi
+    after: [clarify]
+    idleTimeoutMinutes: 60
+    prompt: |
+      Read CLAUDE.md + README.md + TODO.md only (no source reads). Write PLAN.md with:
+      Mandatory Reading; Step-by-Step Tasks as checkboxes (call out each Rust<->TS IPC boundary:
+      command + generate_handler! registration + invoke call site + ts-rs type); Validation Commands
+      (make check, cargo clippy); Acceptance Criteria; Risks (destructive-kube guards, watch leaks).
+      Then call plannotator_submit_plan and BLOCK on HTTP approval (127.0.0.1:19432).
+      If denied, iterate on PLAN.md. On approval, print one line and exit — do NOT implement.
+    restrictions:
+      writes: [PLAN.md]
+      noBash: true
+
+  - id: verify-plan
+    type: bash
+    after: [plan]
+    run: |
+      test -f PLAN.md || { echo "PLAN.md missing"; exit 1; }
+      grep -q '\- \[ \]' PLAN.md || { echo "PLAN.md has no task checkboxes"; exit 1; }
+      mkdir -p .claude/archon/plans && cp PLAN.md ".claude/archon/plans/$(date +%s)-plan.md" 2>/dev/null || true
+      echo "plan verified"
+
+  - id: implement
+    type: claude
+    after: [verify-plan]
+    loop: true
+    maxIterations: 20
+    freshContextPerIteration: true
+    prompt: |
+      Read PLAN.md + CLAUDE.md. Pick the next unchecked task. Implement the smallest correct change,
+      reusing existing patterns (cite file:line). Validate incrementally (cargo check / targeted test /
+      pnpm typecheck). On pass: commit ("{type}: {task}" + "Task N from PLAN.md" + the required
+      Co-Authored-By footer) and check the box. On fail: fix or note + skip after 3 attempts.
+      Loop until all tasks are checked.
+
+  - id: final-review
+    type: claude
+    after: [implement]
+    freshContext: true
+    prompt: |
+      Run make check. Cross-check PLAN.md vs reality (every task checked? commits exist? files match?).
+      Output: Feature / Branch / Tasks done / Commits / Validation status / Recommendation
+      (READY FOR PR via /review-pr, or NEEDS FIXES).

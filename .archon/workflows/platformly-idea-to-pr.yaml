@@ -1,0 +1,80 @@
+# platformly-idea-to-pr — full idea -> PR with a parallel 5-reviewer fan-out.
+# Requires the Archon CLI. Adapted from GitHubIssueTriager (triager-idea-to-pr);
+# the Neon branch-per-run pre/post hooks were REMOVED (platformly has no database).
+name: platformly-idea-to-pr
+description: Ship a feature end-to-end — plan, implement, validate, PR, then a 5-reviewer fan-out + synthesis.
+
+nodes:
+  - id: plan
+    type: claude
+    prompt: |
+      Create an implementation plan for: {{input}}. Follow .claude/skills/archon-dev/cookbooks/plan.md.
+      Write .claude/archon/plans/<slug>.plan.md (Mandatory Reading; checkboxed tasks; Validation
+      Commands = make check; Acceptance Criteria; Risks). Reuse existing patterns (cite file:line).
+
+  - id: confirm
+    type: claude
+    after: [plan]
+    interactive: true
+    prompt: Present the plan; get user confirmation or revise. Proceed only on approval.
+
+  - id: implement
+    type: claude
+    after: [confirm]
+    model: claude-opus-4-8
+    prompt: |
+      Execute the plan per .claude/skills/archon-dev/cookbooks/implement.md, task by task, on a feature
+      branch. Validate incrementally. Honor kube-safety (destructive ops need a guard + dry-run) and the
+      IPC contract rules. Write .claude/archon/reports/<slug>-report.md when done.
+
+  - id: validate
+    type: bash
+    after: [implement]
+    run: make check
+
+  - id: finalize-pr
+    type: claude
+    after: [validate]
+    prompt: |
+      Open a PR per .claude/skills/archon-dev/cookbooks/pr.md (Intent / What changed / How to verify /
+      Risks / Closes #N). Include the required "🤖 Generated with Claude Code" footer.
+
+  - id: sync-with-main
+    type: bash
+    after: [finalize-pr]
+    run: git fetch origin && git rebase origin/main || echo "rebase needs manual resolution"
+
+  # ---- Phase: parallel 5-reviewer fan-out (maps to .claude/agents) ----
+  - id: review-fanout
+    type: parallel
+    after: [sync-with-main]
+    agents:
+      - code-reviewer
+      - silent-failure-hunter
+      - rust-safety-auditor
+      - tauri-ipc-checker
+      - pr-test-analyzer
+    prompt: |
+      Review the PR diff (git diff origin/main...HEAD) for your specialty. Findings cite file:line.
+      Focus on the diff, not the whole repo.
+
+  - id: synthesize
+    type: claude
+    after: [review-fanout]
+    prompt: |
+      Aggregate the 5 reviews. Then run /triage-review semantics: validate each finding empirically,
+      bucket (must-fix / hygiene / defer / push-back). Write .claude/archon/reviews/<slug>-review.md.
+
+  - id: apply-fixes
+    type: claude
+    after: [synthesize]
+    prompt: |
+      Apply the must-fix bucket (and cheap hygiene). Re-run make check. Commit with the required
+      Co-Authored-By footer. Leave deferrals as issues/TODO entries.
+
+  - id: summary
+    type: claude
+    after: [apply-fixes]
+    prompt: |
+      Output: Feature / Branch / PR URL / tasks done / validation status / reviewer findings resolved /
+      anything deferred. Recommend merge or NEEDS FIXES.
