@@ -73,3 +73,22 @@ jobs:
 
       - name: cargo test
         run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
+
+  web:
+    name: web build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.2
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install JS deps
+        run: pnpm install --frozen-lockfile
+      - name: Build site (Next.js — typechecks + builds)
+        run: pnpm --filter @platformly/web build

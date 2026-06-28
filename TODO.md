@@ -81,7 +81,7 @@ templates (`*/utils/html_report.py`), risk rubrics (`*/analyzer.py`), Helm/RBAC 
 - [x] **P0-4** 🔴 Blog agent (`blog-writer` + `/blog-draft`) + `blog/templates/*` + `CALENDAR.md`. *(PR #1; seed post 001 drafted)*
 - [x] **P0-5** 🟠 CI: build matrix (mac/win/linux), lint, typecheck; `.github/ISSUE_TEMPLATE/ai-ready.md`. *(`.github/workflows/ci.yml`: fmt + clippy + cargo test + frontend build across all 3 OSes)*
 - [x] **P0-6** 🔴 Dark token design system + app-shell layout (sidebar, command bar, panels). *(token system in `src/styles/`; AppShell + Sidebar/TopBar/StatusBar/CommandPalette/EmptyState; ⌘K palette)*
-- [ ] **P0-7** 🟠 `apps/web` Next.js landing + `/blog` route under a **neutral series brand** (no product name pre-reveal); deploy.
+- [x] **P0-7** 🟠 `apps/web` Next.js landing + `/blog` route under a **neutral series brand** (no product name pre-reveal). *(landing + build-log index; `make web`; deploy is a manual step)*
 
 ## Phase 1 — Core Cluster Connectivity
 > Goal: connect to **any** cluster (any cloud, any node type) and see a live overview. **`deps: P0-1`.**

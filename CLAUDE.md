@@ -19,9 +19,10 @@ Roadmap in `TODO.md`. Built in public with an **unnamed feature-first blog** (se
 ## Run
 ```sh
 make install      # JS deps (pnpm via corepack if missing)
-make web          # frontend only — no Rust needed (http://localhost:$VITE_PORT)
+make front        # desktop frontend only, in a browser — no Rust (http://localhost:$VITE_PORT)
+make web          # the Next.js marketing site (apps/web)
 make dev          # full Tauri desktop app (needs Rust + Tauri prerequisites)
-make build-web    # typecheck + build the frontend bundle
+make build-front  # typecheck + build the desktop frontend bundle
 make check        # full gate: cargo check + cargo test + pnpm typecheck   (run before commits)
 ```
 Rust is required for the desktop app. Tauri prerequisites: https://tauri.app/start/prerequisites/
