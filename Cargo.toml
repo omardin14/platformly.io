@@ -1,0 +1,12 @@
+# Rust workspace. The desktop app's Tauri backend is the first (and for now only)
+# member; future Rust crates (e.g. a shared k8s-core) get added here.
+[workspace]
+resolver = "2"
+members = ["apps/desktop/src-tauri"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
