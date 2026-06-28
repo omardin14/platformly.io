@@ -2,9 +2,8 @@
 
 > **The ultimate Kubernetes manager** — multi-cloud cluster management + a CKS-mapped
 > Security Command Center + hands-on training + AI. Cross-platform desktop app
-> (macOS / Windows / Linux), built in public with **one blog post per day**.
+> (macOS / Windows / Linux), built in public with a feature-first, delayed-reveal blog.
 
-**Full plan:** see the approved design doc for architecture, tech-stack, and reuse rationale.
 **Stack:** Tauri 2 + Rust (`kube-rs`) desktop · Bun/Hono `sync-api` (auth/license/sync/AI proxy) ·
 Next.js `web` (landing + blog) · pnpm + Cargo monorepo.
 
@@ -12,22 +11,46 @@ Next.js `web` (landing + blog) · pnpm + Cargo monorepo.
 
 ## How to read this file
 
-- **~110 days, 1 deliverable + 1 post per day.** Each build day = one significant, demoable
-  increment (the **daily cadence rule** — no filler days).
-- **Content = feature-first reveal:** each post showcases one feature of an **unnamed** tool in
-  mixed formats (problem→solution · tutorial · showcase), building to a **brand reveal at 1.0
-  launch**. Blog agent emits `blog/NNN-<slug>.md` + `.linkedin.md` (both unnamed pre-reveal).
-  See the design doc's "Content strategy" + `blog/CALENDAR.md` + `docs/COMPETITIVE-LANDSCAPE.md`.
-- Criticality: 🔴 critical · 🟠 high · 🟡 medium.
-- Tag `[port: <project>]` means logic is ported to Rust from an existing `../k8s/` Python tool
-  (spec already validated — translate, don't redesign).
+Organized by **phase** (`P0`–`P6` + Post-1.0), not by calendar days. Each task has a stable **ID** so
+dependencies can reference it.
 
-### Daily build-in-public workflow (every day)
-1. `make wt-open NAME=<feature>` → isolated worktree + ports.
-2. Implement the day's item.
-3. `/clear` → `/review-pr` (fresh-context fan-out); `/cross-review` (Codex) on security PRs.
-4. `/triage-review` → fix must-fixes → `make check` green → merge.
-5. `/blog-draft` → rotating format → emit `blog/NNN-<slug>.md` + `.linkedin.md` (unnamed pre-reveal) → publish Medium + post LinkedIn.
+- **Status:** `[ ]` todo · `[~]` partial · `[x]` done. **Criticality:** 🔴 critical · 🟠 high · 🟡 medium.
+- **Task IDs:** `P<phase><track-letter?>-<n>` — e.g. `P1-2`, `P3b-1`. Stable handles for `deps:`.
+- **`deps:`** = prerequisite IDs/phases that must land first. No `deps:` → ready once the phase is unblocked.
+- **Tracks:** within a phase, each lettered **track** is independent and meant for its **own worktree**;
+  tracks in the same phase run **‖ in parallel**. Sequential steps inside a track use `deps:`.
+- **`[port: …]`** = port validated Rust logic from an existing `../k8s/` tool (translate, don't redesign).
+- The **content/blog** track and the per-task **review workflow** are *continuous* — they run parallel to
+  every phase (see "Continuous tracks" at the bottom).
+
+---
+
+## Dependency & parallelism map
+
+**Critical path:** `P0 → P1 → { P2 ‖ P3 } → { P4 , P5 } → P6`
+
+```
+P0 Foundation ─┬─ P0-6 design shell ─────────────┐ (soft dep for all UI)
+               └─ P1 Connectivity ──┬─ P2 Resources ──────────────┐
+                                    ├─ P3 Security (3a‖3b‖3c‖3d) ──┼─ P4 Training ─┐
+                                    └─ P5-1 AI infra (early) ──────┴─ P5 AI ───────┴─ P6 Release → 1.0 + REVEAL
+```
+
+- **Start anytime (no kube deps):** `P0-5` CI · `P0-6` design system · `P0-7` web · the **content track**.
+- **Unblocked once P1 lands:** `P2` (resources) **‖** `P3a` (security base).
+- **Big fan-out:** `P3b ‖ P3c ‖ P3d` are mutually independent → up to **3 simultaneous worktrees**.
+  `P5-1` (AI provider infra) is also independent — start it early once P1 exists.
+- **Late / gated:** `P4` needs `P3` · `P5` features need `P1–P3` · `P6` needs everything.
+
+### Spin up now (parallel worktrees you can open today)
+| Track | Suggested worktree | Blocked by |
+|---|---|---|
+| `P0-6` design system + app shell | `feat/app-shell` | nothing (PR-ready) |
+| `P0-5` CI workflows | `chore/ci` | nothing |
+| `P0-7` web landing + blog | `feat/web-landing` | nothing |
+| `P1-1` kube-rs client (the spine) | `feat/kube-core` | nothing |
+
+> Everything in P2–P5 is gated on `P1-1`/`P1-2` (the kube client). Land that first; then the fan-out opens up.
 
 ---
 
@@ -35,11 +58,11 @@ Next.js `web` (landing + blog) · pnpm + Cargo monorepo.
 
 | `../k8s/` project | Ported into | CKS domain |
 |---|---|---|
-| `k8s-kube-bench-slack` | CIS scan (Day 42–43) | Cluster Setup/Hardening |
-| `k8s-auth-report-slack` | RBAC explorer (Day 44–45) | Cluster Hardening |
-| `k8s-kubelet-check-slack` | Kubelet hardening audit (Day 48) | System Hardening |
-| `k8s-certs-manager-slack` | Certificate lifecycle (Day 46) | Cluster Setup |
-| `k8s-version-manager-slack` | Version skew (Day 16–17) + binary SHA256 integrity (Day 61) | Supply Chain |
+| `k8s-kube-bench-slack` | CIS scan (`P3a-4`) | Cluster Setup/Hardening |
+| `k8s-auth-report-slack` | RBAC explorer (`P3a-5`) | Cluster Hardening |
+| `k8s-kubelet-check-slack` | Kubelet hardening audit (`P3a-8`) | System Hardening |
+| `k8s-certs-manager-slack` | Certificate lifecycle (`P3a-6`) | Cluster Setup |
+| `k8s-version-manager-slack` | Version skew (`P1-6`) + binary SHA256 integrity (`P3c-5`) | Supply Chain |
 | `k8s-oncall-manager-slack` | **Post-1.0** Operations module | Ops (non-CKS) |
 | `k8s-dashboard-manager-teleport` | **Post-1.0** Access module | Access (non-CKS) |
 
@@ -48,175 +71,179 @@ templates (`*/utils/html_report.py`), risk rubrics (`*/analyzer.py`), Helm/RBAC 
 
 ---
 
-## Phase 0 — Foundation & Build-in-Public Setup (Days 1–7)
-> Goal: runnable Tauri shell, dev harness, and the blog pipeline live in week one.
+## Phase 0 — Foundation & Harness
+> Goal: runnable Tauri shell, the dev harness, the blog pipeline, and the app-shell UI.
+> `deps: none`. All P0 tasks are independent of the kube work — any can be a parallel worktree.
 
-- [x] **Day 1** 🔴 Monorepo scaffold (pnpm + Cargo workspaces); Tauri 2 app boots an empty window. — *Seed post (unnamed): "The CKS exam in plain English: the 6 domains."*
-- [ ] **Day 2** 🔴 Dark token design system + app-shell layout (sidebar, command bar, panels) — port `learnthing/docs/DESIGN.md`.
-- [x] **Day 3** 🔴 Worktree harness: `scripts/w.sh`, `scripts/lib/ports.sh`, `Makefile` (`wt-open`/`wt-rm`/`wt-list`/`dev`/`dev-api`). Verify `make wt-open NAME=test`. *(done early w/ PR #1)*
-- [x] **Day 4** 🔴 `.claude/` agents (code-reviewer, silent-failure-hunter, tauri-ipc-checker, sync-api-contract-checker, rust-safety-auditor, …) + commands `/review-pr`, `/cross-review`, `/triage-review` + `archon-dev` skill + `.archon/` workflows. *(done early w/ PR #1)*
-- [~] **Day 5** 🟠 CI: build matrix (mac/win/linux), lint, typecheck; `.github/ISSUE_TEMPLATE/ai-ready.md`. *(partial: issue template done; CI workflows pending)*
-- [x] **Day 6** 🔴 **Blog agent**: `.claude/agents/blog-writer.md` + `/blog-draft` → emits unnamed `blog/NNN-<slug>.md` + `.linkedin.md`, rotating `blog/templates/{problem-solution,tutorial,showcase}.md` (+ `reveal.md` via `--reveal`); updates `blog/CALENDAR.md`. *(done early w/ PR #1; seed post 001 drafted)*
-- [ ] **Day 7** 🟠 `apps/web` Next.js landing + `/blog` route under a **neutral series brand** (no product name pre-reveal); deploy.
+- [x] **P0-1** 🔴 Monorepo (pnpm + Cargo); Tauri 2 app boots; Rust↔TS IPC bridge proven. *(PR #1)*
+- [x] **P0-2** 🔴 Worktree harness: `scripts/w.sh`, `scripts/lib/ports.sh`, Makefile (`wt-open`/`wt-rm`/`wt-list`). *(PR #1)*
+- [x] **P0-3** 🔴 `.claude/` agents + `/review-pr` `/cross-review` `/triage-review` + `archon-dev` skill + `.archon/` workflows. *(PR #1)*
+- [x] **P0-4** 🔴 Blog agent (`blog-writer` + `/blog-draft`) + `blog/templates/*` + `CALENDAR.md`. *(PR #1; seed post 001 drafted)*
+- [~] **P0-5** 🟠 CI: build matrix (mac/win/linux), lint, typecheck; `.github/ISSUE_TEMPLATE/ai-ready.md`. *(issue template ✓; **CI workflows pending**)*
+- [ ] **P0-6** 🔴 Dark token design system + app-shell layout (sidebar, command bar, panels) — port `learnthing/docs/DESIGN.md`. *(soft dep for all UI — do before deep UI work; doesn't block backend tracks)*
+- [ ] **P0-7** 🟠 `apps/web` Next.js landing + `/blog` route under a **neutral series brand** (no product name pre-reveal); deploy.
 
-## Phase 1 — Core Cluster Connectivity (Days 8–20)
-> Goal: connect to **any** cluster (any cloud, any node type) and see a live overview.
+## Phase 1 — Core Cluster Connectivity
+> Goal: connect to **any** cluster (any cloud, any node type) and see a live overview. **`deps: P0-1`.**
+> The kube client is the spine the whole app builds on — land Track 1A first, then 1B/1C fan out.
 
-- [ ] **Day 8** 🔴 `kube-rs` integration; parse `~/.kube/config`; list contexts.
-- [ ] **Day 9** 🔴 Context switching + multi-cluster session state.
-- [ ] **Day 10** 🔴 Connection Manager UI (add / test / remove / health).
-- [ ] **Day 11** 🟠 GKE auth via `gke-gcloud-auth-plugin` exec plugin; clear "plugin missing" errors.
-- [ ] **Day 12** 🔴 EKS (`aws eks get-token`) + AKS (`kubelogin`) auth. — *Blog: "One tool, every cloud."*
-- [ ] **Day 13** 🟠 Cluster-type detection: GKE Standard/**Autopilot**, EKS **EC2 / Fargate / Auto Mode**, AKS, k3s/kind, on-prem → capability flags.
-- [ ] **Day 14** 🟠 Node summary + capacity/requests view.
-- [ ] **Day 15** 🟠 Control-plane health checks.
-- [ ] **Day 16** 🟠 Version-skew detection `[port: k8s-version-manager-slack]` — current vs latest stable from `dl.k8s.io`.
-- [ ] **Day 17** 🟡 Component skew + upgrade-gap surfacing.
-- [ ] **Day 18** 🟠 Cluster Overview dashboard.
-- [ ] **Day 19** 🟡 Reactflow cluster topology.
-- [ ] **Day 20** 🟡 ts-rs contract hardening; tauri-ipc-checker green on the kube bridge.
+**Track 1A — kube core** (worktree `feat/kube-core`)
+- [ ] **P1-1** 🔴 `kube-rs` integration; parse `~/.kube/config`; list contexts.
+- [ ] **P1-2** 🔴 Context switching + multi-cluster session state. `deps: P1-1`
+- [ ] **P1-3** 🔴 Connection Manager UI (add/test/remove/health). `deps: P1-2` (UI needs `P0-6`)
 
-## Phase 2 — Resource Management Core (Days 21–38) — "Lens/Headlamp parity"
-> Goal: the baseline every k8s IDE must nail, done well.
+**Track 1B — cloud auth** (worktree `feat/cloud-auth`, parallel after `P1-1`) — `deps: P1-1`
+- [ ] **P1-4** 🟠 Cloud auth exec plugins: GKE (`gke-gcloud-auth-plugin`), EKS (`aws eks get-token`), AKS (`kubelogin`).
+- [ ] **P1-5** 🟠 Cluster-type detection: GKE Standard/**Autopilot**, EKS **EC2/Fargate/Auto Mode**, AKS, k3s/kind. `deps: P1-4`
 
-- [ ] **Day 21** 🔴 Generic resource explorer (built-in kinds) + virtualized tables.
-- [ ] **Day 22** 🔴 CRD discovery via the discovery API.
-- [ ] **Day 23** 🟠 Namespace/label filtering + fast search.
-- [ ] **Day 24** 🔴 Live **watch** streams (informers) → reactive UI.
-- [ ] **Day 25** 🟠 Resource detail (describe).
-- [ ] **Day 26** 🟠 Events + owner references.
-- [ ] **Day 27** 🟡 Relations graph.
-- [ ] **Day 28** 🟠 YAML viewer (read-only, syntax-highlighted).
-- [ ] **Day 29** 🔴 YAML editor with server-side **dry-run**.
-- [ ] **Day 30** 🔴 Apply with **diff**.
-- [ ] **Day 31** 🟡 Create-from-template.
-- [ ] **Day 32** 🔴 Logs (multi-container, follow).
-- [ ] **Day 33** 🟠 Log search + since/grep.
-- [ ] **Day 34** 🔴 Exec terminal (PTY bridge from learnthing).
-- [ ] **Day 35** 🟠 Port-forward manager.
-- [ ] **Day 36** 🟠 Scale / rollout / restart / delete with confirmations.
-- [ ] **Day 37** 🟠 Workloads + Networking (incl. Gateway API) + Config + Storage views.
-- [ ] **Day 38** 🟡 Command palette + saved views + multi-cluster resource search.
+**Track 1C — read-only views** (worktree `feat/cluster-overview`, parallel after `P1-1`/`P1-2`)
+- [ ] **P1-6** 🟠 Version-skew detection `[port: version-manager]` — current vs latest stable. `deps: P1-1`
+- [ ] **P1-7** 🟠 Cluster Overview dashboard + Reactflow topology. `deps: P1-2`
+- [ ] **P1-8** 🟡 ts-rs contract hardening; `tauri-ipc-checker` green on the kube bridge. `deps: P1-2`
 
-## Phase 3 — Security Command Center (Days 39–70) — **the differentiator, mapped to CKS**
-> Goal: a Security workspace where each panel = a CKS exam domain. The v1 headline.
-> *De-risked: 5 panels port validated logic from your `../k8s/` tools.*
+## Phase 2 — Resource Management Core ("Lens/Headlamp parity")
+> Goal: the baseline every k8s IDE must nail, done well. **`deps: P1-1, P1-2`.** Runs **‖ with P3a**.
+> Four internal tracks, parallelizable across worktrees.
 
-### 3a · Cluster Setup & Hardening (CKS 10% + 15%)
-- [ ] **Day 39** 🔴 Security workspace shell + Security Score scaffolding. — *Blog: "A Security Command Center mapped to CKS."*
-- [ ] **Day 40** 🔴 NetworkPolicy visualizer (Reactflow graph of allowed flows).
-- [ ] **Day 41** 🔴 NetworkPolicy editor + "what can reach this pod?".
-- [ ] **Day 42** 🔴 CIS Benchmark scan via kube-bench `[port: k8s-kube-bench-slack]` — run + parse.
-- [ ] **Day 43** 🟠 CIS remediation tracking + AI analysis + HTML report (harvested).
-- [ ] **Day 44** 🔴 RBAC explorer — who-can-do-what matrix `[port: k8s-auth-report-slack]`.
-- [ ] **Day 45** 🔴 RBAC `can-i` simulator + over-privileged SA/role detection + cluster-admin/wildcard risk scoring.
-- [ ] **Day 46** 🟠 Certificate lifecycle `[port: k8s-certs-manager-slack]` — discovery + expiry/issuer/SAN + alerts.
-- [ ] **Day 47** 🟠 API-server access review (anon-auth, insecure ports, admission plugins) + ingress TLS.
+**Track 2A — explorer/watch**
+- [ ] **P2-1** 🔴 Generic resource explorer (built-in kinds) + virtualized tables.
+- [ ] **P2-2** 🔴 CRD discovery via the discovery API.
+- [ ] **P2-3** 🔴 Live **watch** streams (informers) → reactive UI. `deps: P2-1`
 
-### 3a+ · System Hardening (CKS 15%)
-- [ ] **Day 48** 🔴 Kubelet hardening audit `[port: k8s-kubelet-check-slack]` — anon-auth, authz `AlwaysAllow`, readonly port 10255, exposed `/metrics`, kubelet CVE; per-node risk + remediation.
-- [ ] **Day 49** 🟡 Node OS footprint hints + seccomp/AppArmor presence checks.
+**Track 2B — detail / edit**
+- [ ] **P2-4** 🟠 Resource detail (describe), events, owner refs, relations graph.
+- [ ] **P2-5** 🔴 YAML editor with server-side **dry-run**.
+- [ ] **P2-6** 🔴 Apply with **diff** + create-from-template. `deps: P2-5`
 
-### 3b · Minimize Microservice Vulnerabilities (CKS 20%)
-- [ ] **Day 50** 🔴 Pod Security Standards / admission audit (privileged, hostPath, hostNetwork, runAsRoot, caps).
-- [ ] **Day 51** 🔴 SecurityContext analyzer per workload.
-- [ ] **Day 52** 🟠 One-click hardening suggestions. — *Blog: "Pod Security & policy-as-code."*
-- [ ] **Day 53** 🔴 Kyverno policy management (browse / author / test).
-- [ ] **Day 54** 🔴 OPA/Gatekeeper policy management.
-- [ ] **Day 55** 🟠 Policy violation dashboard.
-- [ ] **Day 56** 🟠 Secrets handling review + sandboxing detection (gVisor/Kata RuntimeClass).
+**Track 2C — logs / exec / forward**
+- [ ] **P2-7** 🔴 Logs (multi-container, follow, search, since/grep).
+- [ ] **P2-8** 🔴 Exec terminal (PTY bridge from learnthing).
+- [ ] **P2-9** 🟠 Port-forward manager.
 
-### 3c · Supply Chain Security (CKS 20%)
-- [ ] **Day 57** 🔴 Trivy image scanning (per-workload CVE).
-- [ ] **Day 58** 🟠 Severity rollups + fix-version hints.
-- [ ] **Day 59** 🔴 cosign/sigstore signature verification.
-- [ ] **Day 60** 🟠 Unsigned-image flagging + require-signature policy. — *Blog: "Supply-chain security: Trivy + cosign."*
-- [ ] **Day 61** 🔴 Platform binary integrity `[port: k8s-version-manager-slack]` — extract via pod exec, verify **SHA256** vs `dl.k8s.io`.
-- [ ] **Day 62** 🟠 SBOM viewer.
-- [ ] **Day 63** 🟠 kubesec static manifest analysis.
-- [ ] **Day 64** 🟡 checkov + admission-controller-for-images guidance.
+**Track 2D — actions / views**
+- [ ] **P2-10** 🟠 Scale / rollout / restart / **delete** — guarded (confirmation; dry-run where possible).
+- [ ] **P2-11** 🟠 Workloads + Networking (incl. Gateway API) + Config + Storage views.
+- [ ] **P2-12** 🟡 Command palette + saved views + multi-cluster search.
 
-### 3d · Monitoring, Logging & Runtime Security (CKS 20%)
-- [ ] **Day 65** 🔴 Falco integration (deploy/detect).
-- [ ] **Day 66** 🟠 Runtime threat event stream + dashboard.
-- [ ] **Day 67** 🟠 Audit log viewer.
-- [ ] **Day 68** 🟠 Audit log analyzer (suspicious-verb detection).
-- [ ] **Day 69** 🟡 Immutability & drift checks.
-- [ ] **Day 70** 🟡 **Security Score** rollup aggregating 3a–3d. — *Blog: "Your cluster's security score."*
+## Phase 3 — Security Command Center — **the differentiator, mapped to CKS**
+> Goal: a Security workspace where each panel = a CKS exam domain. **`deps: P1`** (3a also reuses P2's
+> resource layer). Runs as **four ‖ tracks** — ideal for 3+ simultaneous worktrees + `/review-pr` per PR.
 
-## Phase 4 — Training & Upskilling: CKS Practice (Days 71–88)
-> Goal: turn the Security Command Center into a learning surface (learnthing model).
+**Track 3a — Cluster + System Hardening** (worktree `feat/sec-hardening`) — `deps: P1`
+- [ ] **P3a-1** 🔴 Security workspace shell + Security Score scaffolding. *(needs `P0-6`)*
+- [ ] **P3a-2** 🔴 NetworkPolicy visualizer (Reactflow graph).
+- [ ] **P3a-3** 🔴 NetworkPolicy editor + "what can reach this pod?". `deps: P3a-2`
+- [ ] **P3a-4** 🔴 CIS Benchmark scan `[port: kube-bench]` — run + parse + remediation tracking.
+- [ ] **P3a-5** 🔴 RBAC explorer `[port: auth-report]` — who-can-do-what + `can-i` + risk scoring.
+- [ ] **P3a-6** 🟠 Certificate lifecycle `[port: certs-manager]` — expiry/issuer/SAN + alerts.
+- [ ] **P3a-7** 🟠 API-server access review (anon-auth, insecure ports, admission plugins) + ingress TLS.
+- [ ] **P3a-8** 🔴 Kubelet hardening audit `[port: kubelet-check]` — anon-auth, authz mode, readonly 10255, /metrics, CVE.
+- [ ] **P3a-9** 🟡 Node OS footprint + seccomp/AppArmor presence checks.
 
-- [ ] **Day 71** 🔴 Content schema + Ajv loader + linter (port `learnthing/packages/content`). — *Blog: "Learn CKS by doing, in real clusters."*
-- [ ] **Day 72** 🔴 CKS curriculum: Paths/Modules structure — Domain 1 (Cluster Setup).
-- [ ] **Day 73** 🟠 Curriculum — Domains 2–3 (Cluster + System Hardening).
-- [ ] **Day 74** 🟠 Curriculum — Domains 4–6 (Microservice, Supply Chain, Runtime).
-- [ ] **Day 75** 🔴 Embedded local labs — spin up **kind** via PTY.
-- [ ] **Day 76** 🟠 k3s lab option + reset/teardown.
-- [ ] **Day 77** 🔴 Step validation engine — `end_state` JSONPath assertions.
-- [ ] **Day 78** 🔴 Step validation — `output_match` regex.
-- [ ] **Day 79** 🟠 Lesson renderer (MDX + Mermaid/Reactflow + code blocks).
-- [ ] **Day 80** 🟡 Hints state machine + reveal.
-- [ ] **Day 81** 🟠 AI tutor scoped to current lesson + terminal output (Socratic tiered hints).
-- [ ] **Day 82** 🟠 Module quizzes + AI grading.
-- [ ] **Day 83** 🟠 Gamification — XP + levels.
-- [ ] **Day 84** 🟡 Streaks + achievements.
-- [ ] **Day 85** 🔴 CKS Exam Simulator — timed, multi-task scenarios.
-- [ ] **Day 86** 🟠 Exam grading against a real lab cluster.
-- [ ] **Day 87** 🟡 Onboarding (skill/goal selection).
-- [ ] **Day 88** 🟡 Progress sync via `sync-api`.
+**Track 3b — Minimize Microservice Vulnerabilities** (worktree `feat/sec-microservice`) — `deps: P1`
+- [ ] **P3b-1** 🔴 Pod Security Standards / admission audit.
+- [ ] **P3b-2** 🔴 SecurityContext analyzer + one-click hardening.
+- [ ] **P3b-3** 🔴 Kyverno policy management (browse/author/test).
+- [ ] **P3b-4** 🔴 OPA/Gatekeeper policy management.
+- [ ] **P3b-5** 🟠 Policy violation dashboard.
+- [ ] **P3b-6** 🟠 Secrets handling review + sandboxing detection (gVisor/Kata).
 
-## Phase 5 — AI Features (Days 89–100)
-> Goal: planning-platform-grade AI, k8s-focused.
+**Track 3c — Supply Chain Security** (worktree `feat/sec-supplychain`) — `deps: P1`
+- [ ] **P3c-1** 🔴 Trivy image scanning (per-workload CVE).
+- [ ] **P3c-2** 🟠 Severity rollups + fix-version hints.
+- [ ] **P3c-3** 🔴 cosign/sigstore signature verification.
+- [ ] **P3c-4** 🟠 Unsigned-image flagging + require-signature policy. `deps: P3c-3`
+- [ ] **P3c-5** 🔴 Platform binary integrity `[port: version-manager]` — pod-exec extract + SHA256 vs `dl.k8s.io`.
+- [ ] **P3c-6** 🟠 SBOM viewer.
+- [ ] **P3c-7** 🟡 kubesec + checkov static manifest analysis.
 
-- [ ] **Day 89** 🔴 AI provider layer (Rust + sync-api proxy): role-based routing + **BYOK** (port `ai_provider.py` concept). — *Blog: "An AI that explains your cluster."*
-- [ ] **Day 90** 🟠 Failover chains + spend tracking.
-- [ ] **Day 91** 🔴 Cluster-scoped AI assistant — RAG over live cluster state.
-- [ ] **Day 92** 🟠 Chat grounded in selected resources/namespaces.
-- [ ] **Day 93** 🔴 kubectl Copilot — natural language → kubectl/manifest.
-- [ ] **Day 94** 🔴 Copilot **dry-run preview** before apply.
-- [ ] **Day 95** 🔴 Failure RCA agent — events/logs/probes/resources diagnosis.
-- [ ] **Day 96** 🟠 RCA multi-step reasoning + fix suggestions.
-- [ ] **Day 97** 🟠 Manifest generator.
-- [ ] **Day 98** 🟠 Security remediation agent (Phase-3 findings → PR-ready patches; reuse harvested AI prompts).
-- [ ] **Day 99** 🟠 Multi-stage cluster audit agent (fan-out across CKS domains → ranked report).
-- [ ] **Day 100** 🟡 Input/output guardrails (injection checks, destructive-action confirmation).
+**Track 3d — Monitoring, Logging & Runtime Security** (worktree `feat/sec-runtime`) — `deps: P1`
+- [ ] **P3d-1** 🔴 Falco integration (deploy/detect).
+- [ ] **P3d-2** 🟠 Runtime threat event stream + dashboard. `deps: P3d-1`
+- [ ] **P3d-3** 🟠 Audit log viewer.
+- [ ] **P3d-4** 🟠 Audit log analyzer (suspicious-verb detection). `deps: P3d-3`
+- [ ] **P3d-5** 🟡 Immutability & drift checks.
 
-## Phase 6 — Polish, Cross-Platform Release & Launch (Days 101–110)
-> Goal: signed, auto-updating 1.0 across all three OSes.
+**Join**
+- [ ] **P3-SCORE** 🟡 Per-cluster **Security Score** rollup aggregating 3a–3d. `deps: P3a, P3b, P3c, P3d` *(the one cross-track join)*
 
-- [ ] **Day 101** 🔴 Release CI — macOS sign + notarize (port `learnthing/.github/workflows/release.yml`).
-- [ ] **Day 102** 🔴 Windows signing + installer.
-- [ ] **Day 103** 🔴 Linux AppImage + **Tauri auto-updater** manifest.
-- [ ] **Day 104** 🔴 E2E (Playwright + `tauri-driver`) — connectivity + resource ops.
-- [ ] **Day 105** 🟠 E2E — a security scan + one lab, across mac/win/linux.
-- [ ] **Day 106** 🟠 Performance pass (virtualization, watch backpressure) + error/empty states + a11y.
-- [ ] **Day 107** 🟠 Licensing/pricing via Stripe + free/pro gating (labs/AI metered).
-- [ ] **Day 108** 🟠 Docs site + in-app onboarding + security/privacy statement (BYOK, local-first). — *Blog: retrospective pt.1.*
-- [ ] **Day 109** 🟠 Final polish + launch prep. — *Blog: retrospective pt.2.*
-- [ ] **Day 110** 🔴 **Public 1.0 launch + THE REVEAL** — *Post (names the product at last): "I've shown you ~100 Kubernetes features. They were all one app."*
+## Phase 4 — Training & Upskilling: CKS Practice
+> Goal: turn the Security Command Center into a learning surface (learnthing model). **`deps: P3`** (+ `P1` local clusters).
+
+**Track 4A — content** (low dep — authoring can start early; parallelizable per CKS domain)
+- [ ] **P4-1** 🔴 Content schema + Ajv loader + linter (port `learnthing/packages/content`).
+- [ ] **P4-2** 🟠 CKS curriculum (Paths→Modules→Steps→Quiz), all 6 domains. `deps: P4-1`
+
+**Track 4B — lab engine** — `deps: P1`
+- [ ] **P4-3** 🔴 Embedded local labs — spin up **kind/k3s** via PTY (reset/teardown).
+- [ ] **P4-4** 🔴 Step validation engine — `end_state` JSONPath + `output_match` regex. `deps: P4-3`
+- [ ] **P4-5** 🟠 Lesson renderer (MDX + Mermaid/Reactflow + code blocks).
+
+**Track 4C — engagement**
+- [ ] **P4-6** 🟠 AI tutor scoped to lesson + terminal output. *(soft dep `P5-1`)*
+- [ ] **P4-7** 🟠 Module quizzes + AI grading.
+- [ ] **P4-8** 🟠 Gamification — XP, levels, streaks, achievements.
+- [ ] **P4-9** 🔴 CKS Exam Simulator — timed scenarios graded against a live cluster. `deps: P4-4`
+- [ ] **P4-10** 🟡 Onboarding (skill/goal) + progress sync via `sync-api`.
+
+## Phase 5 — AI Features
+> Goal: planning-platform-grade AI, k8s-focused. **`deps: P1–P3`** (feature tracks need `5A`).
+
+**Track 5A — AI infra** (worktree `feat/ai-provider`, **start early after P1**)
+- [ ] **P5-1** 🔴 AI provider layer (Rust + sync-api proxy): role-based routing + **BYOK** `[port: ai_provider]`.
+- [ ] **P5-2** 🟠 Failover chains + spend tracking. `deps: P5-1`
+
+**Track 5B — assistant** — `deps: P5-1, P1, P2`
+- [ ] **P5-3** 🔴 Cluster-scoped AI assistant — RAG over live cluster state.
+- [ ] **P5-4** 🟠 Chat grounded in selected resources/namespaces. `deps: P5-3`
+
+**Track 5C — copilot** — `deps: P5-1`
+- [ ] **P5-5** 🔴 kubectl Copilot — natural language → kubectl/manifest.
+- [ ] **P5-6** 🔴 Copilot **dry-run preview** before apply. `deps: P5-5`
+
+**Track 5D — agents** — `deps: P5-1`
+- [ ] **P5-7** 🔴 Failure RCA agent — events/logs/probes/resources diagnosis.
+- [ ] **P5-8** 🟠 RCA multi-step reasoning + fix suggestions. `deps: P5-7`
+- [ ] **P5-9** 🟠 Manifest generator.
+- [ ] **P5-10** 🟠 Security remediation agent (Phase-3 findings → PR-ready patches; reuse harvested prompts). `deps: P3`
+- [ ] **P5-11** 🟠 Multi-stage cluster audit agent (fan-out across CKS domains → ranked report). `deps: P3`
+- [ ] **P5-12** 🟡 Input/output guardrails (injection checks, destructive-action confirmation).
+
+## Phase 6 — Polish, Cross-Platform Release & Launch
+> Goal: signed, auto-updating 1.0 across all three OSes. **`deps: ALL`.** Mostly sequential; signing tasks run ‖.
+
+- [ ] **P6-1** 🔴 Release CI — macOS sign + notarize. *(‖ with P6-2/P6-3)*
+- [ ] **P6-2** 🔴 Windows signing + installer. *(‖)*
+- [ ] **P6-3** 🔴 Linux AppImage + **Tauri auto-updater** manifest. *(‖)*
+- [ ] **P6-4** 🔴 E2E (Playwright + `tauri-driver`) — connectivity + resource ops.
+- [ ] **P6-5** 🟠 E2E — a security scan + one lab, across mac/win/linux. `deps: P6-4`
+- [ ] **P6-6** 🟠 Performance pass (virtualization, watch backpressure) + error/empty states + a11y.
+- [ ] **P6-7** 🟠 Licensing/pricing via Stripe + free/pro gating (labs/AI metered).
+- [ ] **P6-8** 🟠 Docs site + in-app onboarding + security/privacy statement (BYOK, local-first).
+- [ ] **P6-9** 🔴 **Public 1.0 launch + THE REVEAL** — *"I've shown you ~100 Kubernetes features. They were all one app."* `deps: P6-1..P6-8`
 
 ---
 
 ## Post-1.0 — Deferred modules (from non-CKS `../k8s/` projects)
-> Out of the 110-day v1 scope to keep the security-first launch clean.
+> Out of the v1 scope to keep the security-first launch clean.
 
-- [ ] **Operations module** — on-call schedule validation, gap/overlap detection, coverage dashboard + alerts `[port: k8s-oncall-manager-slack]`.
-- [ ] **Access module** — Teleport-gated, role-scoped (admin/readonly) access to in-cluster dashboards/apps `[adopt: k8s-dashboard-manager-teleport]`.
+- [ ] **POST-1** Operations module — on-call schedule validation, gap/overlap detection, coverage dashboard `[port: oncall-manager]`.
+- [ ] **POST-2** Access module — Teleport-gated, role-scoped access to in-cluster dashboards `[adopt: dashboard-manager-teleport]`.
 
 ---
 
-## Dependency waves (parallelizable via worktrees)
-- **Wave A:** Phase 0 → Phase 1 (connectivity blocks everything).
-- **Wave B:** Phase 2 ‖ Phase 3a (start in parallel on a worktree after Phase 1).
-- **Wave C:** Phase 3b / 3c / 3d are independent panels — ideal for parallel worktrees + `/review-pr` per PR.
-- **Wave D:** Phase 4 depends on Phase 3; Phase 5 depends on Phases 1–3.
-- **Wave E:** Phase 6 last.
+## Continuous tracks (run parallel to ALL phases)
+- **Content / blog:** one **unnamed** feature post/day via `/blog-draft` (rotating formats), building to the
+  1.0 **reveal**. Decoupled from build phases — see the design doc's "Content strategy" + `blog/CALENDAR.md`.
+- **Dev workflow (every task):** `make wt-open NAME=<track>` → implement → `/clear` → `/review-pr`
+  (+ `/cross-review` on security PRs) → `/triage-review` → `make check` green → merge.
 
-## First PRs (scaffolding to create before Day 1 ends)
-- `pnpm-workspace.yaml`, `Cargo.toml`, `Makefile`, `scripts/w.sh`, `scripts/lib/ports.sh`.
-- `apps/desktop/src-tauri/src/{kube,cloud,security,pty,commands}/`, `apps/desktop/src/`.
-- `apps/sync-api/` (Hono: auth, license, sync, ai-proxy); `apps/web/`.
-- `packages/{shared-types,content,k8s-types}/`.
-- `.claude/agents/*`, `.claude/commands/*`; `docs/{VISION,DESIGN,SECURITY-CKS-MAP,MVP}.md`.
-- `blog/templates/{problem-solution,tutorial,showcase,reveal,linkedin}.md`, `blog/CALENDAR.md`; `docs/COMPETITIVE-LANDSCAPE.md`.
+## Verification by phase
+- **P0:** `make wt-open NAME=test` provisions a worktree; `make dev` boots the shell; `/blog-draft` emits an **unnamed** post.
+- **P1:** connect to a real kind cluster **and** one cloud cluster; context switch works; cluster-type badge correct (Fargate vs Auto Mode).
+- **P2:** create/edit/apply a Deployment via the YAML editor (dry-run diff shown), stream logs, exec, port-forward — against kind.
+- **P3:** against a deliberately-insecure kind cluster, the ported scanners reproduce the original tools' findings (CIS, RBAC over-priv, kubelet, expiring cert, binary-hash mismatch) + Trivy CVE + cosign unsigned + Kyverno violation; Security Score aggregates.
+- **P4:** complete one CKS lab module end-to-end; step validation passes against the lab cluster; quiz + XP recorded.
+- **P5:** AI assistant RCAs a CrashLooping pod and generates a remediation patch from a P3 finding; dry-run preview before apply.
+- **P6:** CI produces signed mac/win/linux artifacts + updater manifest; Playwright E2E green on all three OSes; Stripe upgrade works; 1.0 tag published.
+- **Throughout:** every PR passes `/review-pr` (+ `/cross-review` on security PRs); `make check` green before merge.
