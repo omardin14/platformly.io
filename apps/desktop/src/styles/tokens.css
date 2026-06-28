@@ -1,0 +1,63 @@
+/* platformly design tokens — dark, periwinkle accent. Single source of truth for
+   color/space/type/motion. Components reference these vars, never raw hex. */
+:root {
+  /* surfaces */
+  --bg: #0b0d12;
+  --surface: #14171f;
+  --surface-2: #1a1e28;
+  --surface-3: #20252f;
+  --border: #232838;
+  --border-strong: #2e3445;
+
+  /* text */
+  --text: #e6e8ee;
+  --text-muted: #8b90a0;
+  --text-dim: #5f6575;
+
+  /* accent — periwinkle */
+  --accent: #8da2fb;
+  --accent-hover: #a5b4fc;
+  --accent-soft: rgba(141, 162, 251, 0.12);
+  --accent-border: rgba(141, 162, 251, 0.35);
+
+  /* semantic */
+  --success: #6ee7b7;
+  --danger: #fb7185;
+  --warning: #fbbf24;
+
+  /* radius */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-full: 999px;
+
+  /* spacing */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+
+  /* typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-lg: 15px;
+  --fs-xl: 20px;
+
+  /* layout rails */
+  --sidebar-w: 240px;
+  --topbar-h: 48px;
+  --statusbar-h: 28px;
+
+  /* elevation + motion */
+  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 12px 48px rgba(0, 0, 0, 0.5);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 140ms;
+
+  color-scheme: dark;
+}
