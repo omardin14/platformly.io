@@ -51,12 +51,12 @@ templates (`*/utils/html_report.py`), risk rubrics (`*/analyzer.py`), Helm/RBAC 
 ## Phase 0 — Foundation & Build-in-Public Setup (Days 1–7)
 > Goal: runnable Tauri shell, dev harness, and the blog pipeline live in week one.
 
-- [ ] **Day 1** 🔴 Monorepo scaffold (pnpm + Cargo workspaces); Tauri 2 app boots an empty window. — *Seed post (unnamed): "The CKS exam in plain English: the 6 domains."*
+- [x] **Day 1** 🔴 Monorepo scaffold (pnpm + Cargo workspaces); Tauri 2 app boots an empty window. — *Seed post (unnamed): "The CKS exam in plain English: the 6 domains."*
 - [ ] **Day 2** 🔴 Dark token design system + app-shell layout (sidebar, command bar, panels) — port `learnthing/docs/DESIGN.md`.
-- [ ] **Day 3** 🔴 Worktree harness: `scripts/w.sh`, `scripts/lib/ports.sh`, `Makefile` (`wt-open`/`wt-rm`/`wt-list`/`dev`/`dev-api`). Verify `make wt-open NAME=test`.
-- [ ] **Day 4** 🔴 `.claude/` agents (code-reviewer, silent-failure-hunter, tauri-ipc-checker, sync-api-contract-checker) + commands `/review-pr`, `/cross-review`, `/triage-review`.
-- [ ] **Day 5** 🟠 CI: build matrix (mac/win/linux), lint, typecheck; `.github/ISSUE_TEMPLATE/ai-ready.md`.
-- [ ] **Day 6** 🔴 **Blog agent**: `.claude/agents/blog-writer.md` + `/blog-draft` → emits unnamed `blog/NNN-<slug>.md` + `.linkedin.md`, rotating `blog/templates/{problem-solution,tutorial,showcase}.md` (+ `reveal.md` via `--reveal`); updates `blog/CALENDAR.md`.
+- [x] **Day 3** 🔴 Worktree harness: `scripts/w.sh`, `scripts/lib/ports.sh`, `Makefile` (`wt-open`/`wt-rm`/`wt-list`/`dev`/`dev-api`). Verify `make wt-open NAME=test`. *(done early w/ PR #1)*
+- [x] **Day 4** 🔴 `.claude/` agents (code-reviewer, silent-failure-hunter, tauri-ipc-checker, sync-api-contract-checker, rust-safety-auditor, …) + commands `/review-pr`, `/cross-review`, `/triage-review` + `archon-dev` skill + `.archon/` workflows. *(done early w/ PR #1)*
+- [~] **Day 5** 🟠 CI: build matrix (mac/win/linux), lint, typecheck; `.github/ISSUE_TEMPLATE/ai-ready.md`. *(partial: issue template done; CI workflows pending)*
+- [x] **Day 6** 🔴 **Blog agent**: `.claude/agents/blog-writer.md` + `/blog-draft` → emits unnamed `blog/NNN-<slug>.md` + `.linkedin.md`, rotating `blog/templates/{problem-solution,tutorial,showcase}.md` (+ `reveal.md` via `--reveal`); updates `blog/CALENDAR.md`. *(done early w/ PR #1; seed post 001 drafted)*
 - [ ] **Day 7** 🟠 `apps/web` Next.js landing + `/blog` route under a **neutral series brand** (no product name pre-reveal); deploy.
 
 ## Phase 1 — Core Cluster Connectivity (Days 8–20)
