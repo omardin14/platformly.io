@@ -27,4 +27,4 @@ for port in "$VITE_PORT" "$WEB_PORT" "$SYNC_API_PORT"; do
   fi
 done
 
-echo "[worktree-teardown] $WT_NAME cleaned (ports $VITE_PORT/$WEB_PORT/$SYNC_API_PORT freed)"
+echo "[worktree-teardown] $WT_NAME: kill attempted on ports $VITE_PORT/$WEB_PORT/$SYNC_API_PORT"

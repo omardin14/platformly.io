@@ -39,7 +39,7 @@ git worktree list --porcelain | awk '
   /^detached$/  { print wt "\t(detached)" }
 ' | while IFS=$'\t' read -r wt branch; do
   unset VITE_PORT WEB_PORT SYNC_API_PORT WT_NAME
-  derive_ports "$wt" >/dev/null 2>&1 || { VITE_PORT="?"; WEB_PORT="?"; SYNC_API_PORT="?"; }
+  derive_ports "$wt" >/dev/null || { VITE_PORT="?"; WEB_PORT="?"; SYNC_API_PORT="?"; }
   v_state="$(port_state "$VITE_PORT")"
   w_state="$(port_state "$WEB_PORT")"
   s_state="$(port_state "$SYNC_API_PORT")"
