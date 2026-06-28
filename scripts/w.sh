@@ -20,11 +20,21 @@ TARGET="$ROOT/.claude/worktrees/$NAME"
 
 if [ "$ACTION" = "rm" ]; then
   bash "$ROOT/scripts/worktree-teardown.sh" "$TARGET" || true
-  git -C "$ROOT" worktree remove --force "$TARGET" 2>/dev/null || true
+  # Don't swallow a real failure silently — warn, then fall back to forced cleanup.
+  if git -C "$ROOT" worktree remove --force "$TARGET"; then
+    removed=1
+  else
+    removed=0
+    [ -e "$TARGET" ] && echo "[w] warning: 'git worktree remove' failed for $TARGET — forcing cleanup" >&2
+  fi
   rm -rf "$TARGET"
   git -C "$ROOT" worktree prune
   git -C "$ROOT" branch -D "$NAME" 2>/dev/null || true
-  echo "[w] removed worktree '$NAME' (dir + branch + ports freed)"
+  if [ "$removed" = 1 ]; then
+    echo "[w] removed worktree '$NAME' (dir + branch + ports freed)"
+  else
+    echo "[w] force-cleaned worktree '$NAME' ('git worktree remove' had failed — see warning above)"
+  fi
   exit 0
 fi
 

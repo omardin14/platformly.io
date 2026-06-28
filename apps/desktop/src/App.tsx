@@ -9,7 +9,12 @@ export default function App() {
   useEffect(() => {
     invoke<string>("app_status")
       .then(setStatus)
-      .catch((err) => setStatus(`backend unavailable: ${String(err)}`));
+      .catch((err) => {
+        // First IPC call site — the template every future kube command copies.
+        // Log the raw error (not stringified) so devtools keeps the full context.
+        console.error("[app_status] IPC error:", err);
+        setStatus(`backend unavailable: ${String(err)}`);
+      });
   }, []);
 
   return (
