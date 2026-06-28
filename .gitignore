@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+target/
+*.tsbuildinfo
+
+# Tauri
+apps/desktop/src-tauri/gen/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Worktrees live here (created by scripts/w.sh)
+.claude/worktrees/
+
+# Blog drafts are kept local (published to Medium/LinkedIn, not version-controlled)
+blog/
