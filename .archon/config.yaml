@@ -1,0 +1,9 @@
+# Archon assistant config. Requires the Archon CLI / Pi tooling to take effect.
+assistants:
+  pi:
+    enableExtensions: true
+    interactive: true
+    extensionFlags:
+      plan: true
+    env:
+      PLANNOTATOR_REMOTE: "1"

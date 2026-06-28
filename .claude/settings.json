@@ -1,0 +1,43 @@
+{
+  "enabledPlugins": {
+    "codex@openai-codex": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm --filter * test:*)",
+      "Bash(pnpm --filter * typecheck:*)",
+      "Bash(pnpm --filter * lint:*)",
+      "Bash(pnpm --filter * build:*)",
+      "Bash(pnpm -r typecheck:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo build:*)",
+      "Bash(make help)",
+      "Bash(make ports)",
+      "Bash(make wt-list)",
+      "Bash(make check)",
+      "Bash(make build-web)",
+      "Bash(bash scripts/lib/ports.sh:*)",
+      "Bash(bash scripts/wt-list.sh)",
+      "Bash(lsof -ti tcp:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git show:*)",
+      "Bash(git stash list:*)",
+      "Bash(git remote -v)",
+      "Bash(git merge-base:*)",
+      "Bash(git fetch origin:*)",
+      "Bash(git worktree list:*)",
+      "Bash(git config --get:*)",
+      "Bash(git config --list:*)"
+    ]
+  }
+}
