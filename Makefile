@@ -31,9 +31,12 @@ dev: ### Run the Tauri desktop app (derives VITE_PORT for the current worktree)
 	@$(WITH_PORTS) echo "[dev] VITE_PORT=$$VITE_PORT" && \
 	  VITE_PORT=$$VITE_PORT pnpm --filter @platformly/desktop dev
 
-web: ### Run only the Vite frontend, no Rust (derives VITE_PORT)
-	@$(WITH_PORTS) echo "[web] VITE_PORT=$$VITE_PORT" && \
+front: ### Desktop frontend only, in a browser — no Rust (derives VITE_PORT)
+	@$(WITH_PORTS) echo "[front] VITE_PORT=$$VITE_PORT" && \
 	  VITE_PORT=$$VITE_PORT pnpm --filter @platformly/desktop vite:dev
+
+web: ### Run the Next.js marketing site (apps/web)
+	@pnpm --filter @platformly/web dev
 
 dev-api: ### Run the sync-api (Bun/Hono) — forward-looking; exists from Phase 5
 	@$(WITH_PORTS) if [ -d apps/sync-api ]; then \
@@ -41,8 +44,11 @@ dev-api: ### Run the sync-api (Bun/Hono) — forward-looking; exists from Phase 
 	  PORT=$$SYNC_API_PORT pnpm --filter @platformly/sync-api dev; \
 	else echo "[dev-api] apps/sync-api does not exist yet (Phase 5)"; fi
 
-build-web: ### Typecheck + build the frontend bundle (no Rust required)
+build-front: ### Typecheck + build the desktop frontend bundle (no Rust required)
 	@pnpm --filter @platformly/desktop vite:build
+
+build-web: ### Build the Next.js marketing site
+	@pnpm --filter @platformly/web build
 
 icons: ### Generate app icons from a 1024x1024 source PNG (ARG=path/to.png)
 	@if [ -z "$(ARG)" ]; then echo "usage: make icons ARG=path/to/source-1024.png"; exit 2; fi
@@ -69,4 +75,4 @@ help: ### Show callable targets
 	@echo ""
 	@echo "  Per-worktree ports: see \`make ports\`. Override with VITE_PORT/WEB_PORT/SYNC_API_PORT."
 
-.PHONY: wt-open wt-rm wt-list ports dev web dev-api build-web icons install typecheck check help
+.PHONY: wt-open wt-rm wt-list ports dev front web dev-api build-front build-web icons install typecheck check help

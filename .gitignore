@@ -8,6 +8,10 @@ build/
 target/
 *.tsbuildinfo
 
+# Next.js
+.next/
+next-env.d.ts
+
 # Tauri
 apps/desktop/src-tauri/gen/
 
@@ -25,5 +29,6 @@ apps/desktop/src-tauri/gen/
 # Worktrees live here (created by scripts/w.sh)
 .claude/worktrees/
 
-# Blog drafts are kept local (published to Medium/LinkedIn, not version-controlled)
-blog/
+# Blog drafts are kept local (published to Medium/LinkedIn, not version-controlled).
+# Anchored to repo root so it does NOT match apps/web/app/blog/ (the public route).
+/blog/
