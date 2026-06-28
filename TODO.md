@@ -80,7 +80,7 @@ templates (`*/utils/html_report.py`), risk rubrics (`*/analyzer.py`), Helm/RBAC 
 - [x] **P0-3** 🔴 `.claude/` agents + `/review-pr` `/cross-review` `/triage-review` + `archon-dev` skill + `.archon/` workflows. *(PR #1)*
 - [x] **P0-4** 🔴 Blog agent (`blog-writer` + `/blog-draft`) + `blog/templates/*` + `CALENDAR.md`. *(PR #1; seed post 001 drafted)*
 - [x] **P0-5** 🟠 CI: build matrix (mac/win/linux), lint, typecheck; `.github/ISSUE_TEMPLATE/ai-ready.md`. *(`.github/workflows/ci.yml`: fmt + clippy + cargo test + frontend build across all 3 OSes)*
-- [ ] **P0-6** 🔴 Dark token design system + app-shell layout (sidebar, command bar, panels) — port `learnthing/docs/DESIGN.md`. *(soft dep for all UI — do before deep UI work; doesn't block backend tracks)*
+- [x] **P0-6** 🔴 Dark token design system + app-shell layout (sidebar, command bar, panels). *(token system in `src/styles/`; AppShell + Sidebar/TopBar/StatusBar/CommandPalette/EmptyState; ⌘K palette)*
 - [ ] **P0-7** 🟠 `apps/web` Next.js landing + `/blog` route under a **neutral series brand** (no product name pre-reveal); deploy.
 
 ## Phase 1 — Core Cluster Connectivity
