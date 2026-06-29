@@ -9,6 +9,12 @@ SHELL := /bin/bash
 PORTS_LIB := scripts/lib/ports.sh
 WITH_PORTS = source $(PORTS_LIB) && derive_ports "$$PWD" &&
 
+# Ensure cargo/rustc are on PATH before any Rust step. rustup installs to
+# ~/.cargo/bin, but the profile line that adds it isn't always sourced (so a
+# fresh shell can't find cargo). Rust-dependent recipes prefix with $(ENSURE_CARGO).
+ENSURE_CARGO = if [ -f "$$HOME/.cargo/env" ]; then . "$$HOME/.cargo/env"; fi; \
+  command -v cargo >/dev/null 2>&1 || { echo "[make] cargo not found — install Rust: https://rustup.rs, then re-run"; exit 1; };
+
 # ───────────────────────────────────────────────────────────────── worktrees ──
 
 wt-open: ### Create+provision worktree + open VS Code (NAME=feat-foo required)
@@ -27,8 +33,8 @@ ports: ### Print derived VITE/WEB/SYNC_API ports for the current dir
 
 # ─────────────────────────────────────────────────────────────────────── dev ──
 
-dev: ### Run the Tauri desktop app (derives VITE_PORT for the current worktree)
-	@$(WITH_PORTS) echo "[dev] VITE_PORT=$$VITE_PORT" && \
+dev: ### Run the Tauri desktop app (ensures cargo on PATH; derives VITE_PORT)
+	@$(ENSURE_CARGO) $(WITH_PORTS) echo "[dev] VITE_PORT=$$VITE_PORT" && \
 	  VITE_PORT=$$VITE_PORT pnpm --filter @platformly/desktop dev
 
 front: ### Desktop frontend only, in a browser — no Rust (derives VITE_PORT)
@@ -65,8 +71,8 @@ typecheck: ### Typecheck all workspace packages
 	@pnpm -r --if-present typecheck
 
 check: ### Full gate: cargo check + cargo test + frontend typecheck
-	@echo "[check] cargo check…"   && cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml
-	@echo "[check] cargo test…"    && cargo test  --manifest-path apps/desktop/src-tauri/Cargo.toml
+	@$(ENSURE_CARGO) echo "[check] cargo check…" && cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml
+	@$(ENSURE_CARGO) echo "[check] cargo test…" && cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 	@echo "[check] frontend typecheck…" && pnpm -r --if-present typecheck
 	@echo "[check] OK"
 
