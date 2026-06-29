@@ -67,8 +67,26 @@ derive_ports() {
   export VITE_PORT WEB_PORT SYNC_API_PORT WT_NAME
 }
 
-# Direct invocation: print the derived ports.
-if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+# free_port <start> — echo the first free TCP port at or above <start> (scans up
+# to +50). Lets `make dev` survive a stale process holding the derived port.
+# Best-effort: uses lsof when available, otherwise returns <start> unchanged.
+free_port() {
+  local p="${1:-1420}" max
+  max=$(( p + 50 ))
+  while [ "$p" -lt "$max" ]; do
+    if command -v lsof >/dev/null 2>&1; then
+      if ! lsof -iTCP:"$p" -sTCP:LISTEN -t >/dev/null 2>&1; then echo "$p"; return 0; fi
+    else
+      echo "$p"; return 0
+    fi
+    p=$(( p + 1 ))
+  done
+  echo "${1:-1420}"
+}
+
+# Direct invocation: print the derived ports. (`:-` keeps it quiet if sourced
+# under zsh, where BASH_SOURCE is unset and `set -u` would otherwise complain.)
+if [ "${BASH_SOURCE[0]:-}" = "${0}" ]; then
   derive_ports "${1:-$PWD}"
   echo "vite=${VITE_PORT} web=${WEB_PORT} sync_api=${SYNC_API_PORT} worktree=${WT_NAME}"
 fi

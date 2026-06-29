@@ -33,13 +33,18 @@ ports: ### Print derived VITE/WEB/SYNC_API ports for the current dir
 
 # ─────────────────────────────────────────────────────────────────────── dev ──
 
-dev: ### Run the Tauri desktop app (ensures cargo on PATH; derives VITE_PORT)
-	@$(ENSURE_CARGO) $(WITH_PORTS) echo "[dev] VITE_PORT=$$VITE_PORT" && \
-	  VITE_PORT=$$VITE_PORT pnpm --filter @platformly/desktop dev
+dev: ### Run the Tauri desktop app (ensures cargo on PATH; auto-picks a free port)
+	@$(ENSURE_CARGO) source $(PORTS_LIB) && derive_ports "$$PWD" && \
+	  PORT=$$(free_port $$VITE_PORT); \
+	  if [ "$$PORT" != "$$VITE_PORT" ]; then echo "[dev] port $$VITE_PORT busy → using $$PORT"; else echo "[dev] VITE_PORT=$$PORT"; fi; \
+	  VITE_PORT=$$PORT pnpm --filter @platformly/desktop exec tauri dev \
+	    --config "{\"build\":{\"devUrl\":\"http://localhost:$$PORT\"}}"
 
-front: ### Desktop frontend only, in a browser — no Rust (derives VITE_PORT)
-	@$(WITH_PORTS) echo "[front] VITE_PORT=$$VITE_PORT" && \
-	  VITE_PORT=$$VITE_PORT pnpm --filter @platformly/desktop vite:dev
+front: ### Desktop frontend only, in a browser — no Rust (auto-picks a free port)
+	@source $(PORTS_LIB) && derive_ports "$$PWD" && \
+	  PORT=$$(free_port $$VITE_PORT); \
+	  if [ "$$PORT" != "$$VITE_PORT" ]; then echo "[front] port $$VITE_PORT busy → using $$PORT"; else echo "[front] VITE_PORT=$$PORT"; fi; \
+	  VITE_PORT=$$PORT pnpm --filter @platformly/desktop vite:dev
 
 web: ### Run the Next.js marketing site (apps/web)
 	@pnpm --filter @platformly/web dev
